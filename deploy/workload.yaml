@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: imaging-schedule-desk
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: imaging-schedule-desk
+  template:
+    metadata:
+      labels:
+        app: imaging-schedule-desk
+    spec:
+      containers:
+        - name: app
+          image: imaging-schedule-desk:local
+          ports:
+            - name: http
+              containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: imaging-schedule-db
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: http
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: http
+            failureThreshold: 30
+            periodSeconds: 3
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: imaging-schedule-desk
+spec:
+  type: ClusterIP
+  selector:
+    app: imaging-schedule-desk
+  ports:
+    - port: 8080
+      targetPort: http

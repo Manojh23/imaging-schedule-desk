@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/imaging}
+    username: ${DATABASE_USER:imaging}
+    password: ${DATABASE_PASSWORD:}
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+server:
+  error:
+    include-message: never
